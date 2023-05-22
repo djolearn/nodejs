@@ -1,5 +1,6 @@
 const fs = require("fs");
 const http = require("http");
+const path = require("path");
 const url = require("url");
 ///////////////////////////////////////////
 /////////////////FILES
@@ -38,31 +39,32 @@ const url = require("url");
 // console.log("Will read file");
 /////////////////////////////////////////
 ////////////////SERVER
+
 const data = fs.readFileSync(
   `${__dirname}/starter/dev-data/data.json`,
   "utf-8"
 );
-const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
   const pathName = req.url;
-  if (pathName === "/" || pathName === "/overview") {
-    res.end("This is the OVERVIEW PAGE");
-  } else if (pathName === "/product") {
-    res.end("This is the PRODUCT");
+
+  if (pathName === "/" || pathName === "/home") {
+    res.writeHead(200, { "Content-type": "text/html" });
+    res.end("<h1 style='color:lightgreen';>This is a home page!</h1>");
+  } else if (pathName === "/kontakt") {
+    res.writeHead(200, { "Content-type": "text/html" });
+    res.end("<h1 style='color:lightblue';>This is a contact page!</h1>");
   } else if (pathName === "/api") {
-    res.write(200, { "Content-type": "application/json" });
+    res.writeHead(200, { "Content-type": "application/json" });
     res.end(data);
   } else {
-    res.writeHead(404, {
-      "Content-type": "text/html",
-    });
+    res.writeHead(404, { "Content-type": "text/html" });
     res.end(
-      "<h1 style='color:red;'>This page doesn't exist or has been moved.</h1>"
+      "<h1 style='color:red';>This page doesn't exist or has been moved...</h1><br><a href='/home'>Go back to home</a>"
     );
   }
 });
 
 server.listen(8000, "127.0.0.1", () => {
-  console.log("Listening to requests on port 8000");
+  console.log("Listening to server requests on port 8000!");
 });
