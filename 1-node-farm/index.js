@@ -1,7 +1,11 @@
 const fs = require("fs");
 const http = require("http");
-const path = require("path");
 const url = require("url");
+
+require("slugify");
+
+const replaceTemplate = require("./modules/replaceTemplate");
+
 ///////////////////////////////////////////
 /////////////////FILES
 // Synchronous - Blocking code
@@ -44,23 +48,49 @@ const data = fs.readFileSync(
   `${__dirname}/starter/dev-data/data.json`,
   "utf-8"
 );
+const tempOverview = fs.readFileSync(
+  `${__dirname}/starter/templates/template-overview.html`,
+  "utf-8"
+);
+const tempCard = fs.readFileSync(
+  `${__dirname}/starter/templates/template-card.html`,
+  "utf-8"
+);
+const tempProduct = fs.readFileSync(
+  `${__dirname}/starter/templates/template-product.html`,
+  "utf-8"
+);
+const dataFromStringToObject = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-  const pathName = req.url;
+  const { query, pathname } = url.parse(req.url, true);
+  // Overview Page
+  if (pathname === "/" || pathname === "/overview") {
+    res.writeHead(200, { "Content-type": "text/html" });
 
-  if (pathName === "/" || pathName === "/home") {
+    const cardsHtml = dataFromStringToObject
+      .map((el) => replaceTemplate(tempCard, el))
+      .join("");
+    const output = tempOverview.replace("{%PRODUCT_CARDS%}", cardsHtml);
+    res.end(output);
+
+    // Product Page
+  } else if (pathname === "/product") {
     res.writeHead(200, { "Content-type": "text/html" });
-    res.end("<h1 style='color:lightgreen';>This is a home page!</h1>");
-  } else if (pathName === "/kontakt") {
-    res.writeHead(200, { "Content-type": "text/html" });
-    res.end("<h1 style='color:lightblue';>This is a contact page!</h1>");
-  } else if (pathName === "/api") {
+    const product = dataFromStringToObject[query.id];
+    const output = replaceTemplate(tempProduct, product);
+    res.end(output);
+
+    // API
+  } else if (pathname === "/api") {
     res.writeHead(200, { "Content-type": "application/json" });
     res.end(data);
+
+    // NOT FOUND
   } else {
     res.writeHead(404, { "Content-type": "text/html" });
     res.end(
-      "<h1 style='color:red';>This page doesn't exist or has been moved...</h1><br><a href='/home'>Go back to home</a>"
+      "<h1 style='color:red';>This page doesn't exist or has been moved...</h1><br><a href='/'>Go back to home</a>"
     );
   }
 });
